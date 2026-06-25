@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Панель администратора</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.museums') }}">Музеи</a></li>
+        <li class="breadcrumb-item active">
+            {% if action == 'add' %}Добавить музей{% else %}Редактировать{% endif %}
+        </li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h4 class="fw-bold mb-0">
+                    {% if action == 'add' %}
+                    <i class="bi bi-plus-circle text-success me-2"></i>Добавить музей
+                    {% else %}
+                    <i class="bi bi-pencil text-warning me-2"></i>Редактировать: {{ museum.name }}
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-3 border-bottom pb-2">
+                                Основная информация
+                            </h6>
+                        </div>
+
+                        <div class="col-md-8">
+                            {{ form.name.label(class="form-label fw-semibold") }}
+                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""),
+                               placeholder="Название музея") }}
+                            {% for error in form.name.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            {{ form.category.label(class="form-label fw-semibold") }}
+                            {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else "")) }}
+                            {% for error in form.category.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form.description.label(class="form-label fw-semibold") }}
+                            {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""),
+                               rows=5, placeholder="Описание музея...") }}
+                            {% for error in form.description.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-3 border-bottom pb-2 mt-2">
+                                Контактная информация
+                            </h6>
+                        </div>
+
+                        <div class="col-md-4">
+                            {{ form.city.label(class="form-label fw-semibold") }}
+                            {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else ""),
+                               placeholder="Город") }}
+                            {% for error in form.city.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-8">
+                            {{ form.address.label(class="form-label fw-semibold") }}
+                            {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""),
+                               placeholder="Полный адрес") }}
+                            {% for error in form.address.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            {{ form.phone.label(class="form-label fw-semibold") }}
+                            {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""),
+                               placeholder="+7 (000) 000-00-00") }}
+                            {% for error in form.phone.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-8">
+                            {{ form.website.label(class="form-label fw-semibold") }}
+                            {{ form.website(class="form-control" + (" is-invalid" if form.website.errors else ""),
+                               placeholder="https://example.com") }}
+                            {% for error in form.website.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-3 border-bottom pb-2 mt-2">
+                                Медиа
+                            </h6>
+                        </div>
+
+                        {% if action == 'edit' and museum %}
+                        {% set all_photos = museum.photos.all() %}
+                        {% if all_photos %}
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Галерея фотографий</label>
+                            <div class="row g-2 mt-1">
+                                {% for photo in all_photos %}
+                                <div class="col-6 col-md-4 col-lg-3">
+                                    <div class="card border {{ 'border-primary border-2' if photo.is_primary else '' }} h-100" id="photo-card-{{ photo.id }}">
+                                        <img src="{{ photo.src }}" class="card-img-top"
+                                             style="height: 130px; object-fit: cover;">
+                                        <div class="card-body p-2 d-flex flex-column gap-1">
+                                            {% if photo.is_primary %}
+                                            <span class="badge bg-primary w-100" id="badge-{{ photo.id }}">
+                                                <i class="bi bi-star-fill me-1"></i>Главное
+                                            </span>
+                                            {% else %}
+                                            <button type="button" class="btn btn-outline-primary btn-sm w-100"
+                                                    onclick="setPrimary({{ museum.id }}, {{ photo.id }})">
+                                                <i class="bi bi-star me-1"></i>Сделать главным
+                                            </button>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                                                    onclick="deletePhoto({{ museum.id }}, {{ photo.id }}, this)">
+                                                <i class="bi bi-trash me-1"></i>Удалить
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="gallery_files">
+                                Загрузить фотографии
+                            </label>
+                            <input type="file" class="form-control" id="gallery_files"
+                                   name="gallery_files" accept="image/*" multiple>
+                            <div class="form-text">PNG, JPG, WEBP, GIF — до 5 МБ каждый. Можно выбрать несколько сразу.</div>
+                        </div>
+
+                        <div class="col-12" id="newPhotosPreview" style="display:none;">
+                            <label class="form-label text-muted small">Предпросмотр выбранных фото:</label>
+                            <div id="previewGrid" class="row g-2"></div>
+                        </div>
+
+                        <div class="col-12">
+                            {{ form.image_url.label(class="form-label fw-semibold") }}
+                            {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else ""),
+                               placeholder="https://example.com/image.jpg", id="imageUrlInput") }}
+                            {% for error in form.image_url.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">Альтернатива загрузке — ссылка на внешнее изображение.</div>
+                        </div>
+
+                        <div class="col-12" id="urlPreviewWrapper" style="display:none;">
+                            <label class="form-label text-muted small">Предпросмотр по URL:</label><br>
+                            <img id="urlPreview" src="" alt="Предпросмотр"
+                                 class="img-thumbnail" style="max-height: 160px;">
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <a href="{{ url_for('admin.museums') }}" class="btn btn-outline-secondary">
+                            Отмена
+                        </a>
+                        {{ form.submit(class="btn btn-primary px-4") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Предпросмотр нескольких файлов
+    const galleryInput = document.getElementById('gallery_files');
+    const previewSection = document.getElementById('newPhotosPreview');
+    const previewGrid = document.getElementById('previewGrid');
+
+    galleryInput.addEventListener('change', function () {
+        previewGrid.innerHTML = '';
+        if (this.files.length === 0) {
+            previewSection.style.display = 'none';
+            return;
+        }
+        previewSection.style.display = 'block';
+        Array.from(this.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-md-3';
+                col.innerHTML = `<img src="${e.target.result}" class="img-thumbnail w-100" style="height:100px;object-fit:cover;">`;
+                previewGrid.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Предпросмотр URL
+    const urlInput = document.getElementById('imageUrlInput');
+    const urlPreviewWrapper = document.getElementById('urlPreviewWrapper');
+    const urlPreview = document.getElementById('urlPreview');
+
+    function updateUrlPreview() {
+        const url = urlInput.value.trim();
+        if (url) {
+            urlPreview.src = url;
+            urlPreviewWrapper.style.display = 'block';
+            urlPreview.onerror = () => { urlPreviewWrapper.style.display = 'none'; };
+        } else {
+            urlPreviewWrapper.style.display = 'none';
+        }
+    }
+
+    urlInput.addEventListener('input', updateUrlPreview);
+    updateUrlPreview();
+
+    const CSRF_TOKEN = "{{ csrf_token() }}";
+
+    function setPrimary(museumId, photoId) {
+        fetch(`/admin/museums/${museumId}/photos/${photoId}/set-primary`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `csrf_token=${CSRF_TOKEN}`
+        }).then(() => location.reload());
+    }
+
+    function deletePhoto(museumId, photoId, btn) {
+        if (!confirm('Удалить фото?')) return;
+        fetch(`/admin/museums/${museumId}/photos/${photoId}/delete`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `csrf_token=${CSRF_TOKEN}`
+        }).then(() => location.reload());
+    }
+</script>
+{% endblock %}

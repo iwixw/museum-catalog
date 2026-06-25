@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Фон -->
+  <rect width="64" height="64" rx="12" fill="#0d6efd"/>
+  <!-- Колонны -->
+  <rect x="10" y="28" width="6" height="22" rx="1" fill="white"/>
+  <rect x="20" y="28" width="6" height="22" rx="1" fill="white"/>
+  <rect x="30" y="28" width="6" height="22" rx="1" fill="white"/>
+  <rect x="40" y="28" width="6" height="22" rx="1" fill="white"/>
+  <rect x="50" y="28" width="6" height="22" rx="1" fill="white"/>
+  <!-- Основание -->
+  <rect x="8" y="48" width="50" height="4" rx="1" fill="white"/>
+  <!-- Фронтон (крыша) -->
+  <polygon points="32,8 6,26 58,26" fill="white"/>
+  <!-- Горизонтальная полоса под фронтоном -->
+  <rect x="8" y="26" width="50" height="3" rx="1" fill="white"/>
+</svg>

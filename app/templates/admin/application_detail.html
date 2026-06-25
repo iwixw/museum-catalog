@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Панель администратора</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.applications') }}">Заявки</a></li>
+        <li class="breadcrumb-item active">Заявка #{{ application.id }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h4 class="fw-bold mb-0">
+                    <i class="bi bi-file-text text-primary me-2"></i>
+                    Заявка #{{ application.id }}
+                </h4>
+                <span class="badge status-badge status-{{ application.status }} fs-6 px-3 py-2">
+                    {% if application.status == 'pending' %}<i class="bi bi-clock me-1"></i>
+                    {% elif application.status == 'approved' %}<i class="bi bi-check-circle me-1"></i>
+                    {% else %}<i class="bi bi-x-circle me-1"></i>{% endif %}
+                    {{ application.status_label }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <h2 class="fw-bold mb-3">{{ application.museum_name }}</h2>
+
+                {% if application.museum_image_src %}
+                <div class="mb-4">
+                    <img src="{{ application.museum_image_src }}" alt="{{ application.museum_name }}"
+                         class="img-fluid rounded-3 shadow-sm" style="max-height: 300px; object-fit: cover; width: 100%;">
+                </div>
+                {% endif %}
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <div class="info-item">
+                            <small class="text-muted d-block fw-semibold text-uppercase">Категория</small>
+                            <span class="badge category-badge category-{{ application.museum_category }} mt-1">
+                                {{ application.category_label }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="info-item">
+                            <small class="text-muted d-block fw-semibold text-uppercase">Город</small>
+                            <span><i class="bi bi-geo-alt text-muted me-1"></i>{{ application.museum_city }}</span>
+                        </div>
+                    </div>
+                    {% if application.museum_address %}
+                    <div class="col-12">
+                        <div class="info-item">
+                            <small class="text-muted d-block fw-semibold text-uppercase">Адрес</small>
+                            <span><i class="bi bi-pin-map text-muted me-1"></i>{{ application.museum_address }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if application.museum_phone %}
+                    <div class="col-sm-6">
+                        <div class="info-item">
+                            <small class="text-muted d-block fw-semibold text-uppercase">Телефон</small>
+                            <span><i class="bi bi-telephone text-muted me-1"></i>{{ application.museum_phone }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if application.museum_website %}
+                    <div class="col-sm-6">
+                        <div class="info-item">
+                            <small class="text-muted d-block fw-semibold text-uppercase">Сайт</small>
+                            <a href="{{ application.museum_website if application.museum_website.startswith('http') else 'https://' + application.museum_website }}"
+                               target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                <i class="bi bi-globe text-muted me-1"></i>{{ application.museum_website }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if application.museum_description %}
+                <div class="mb-4">
+                    <h6 class="text-muted text-uppercase small fw-semibold border-bottom pb-2 mb-3">Описание</h6>
+                    <div class="text-secondary">
+                        {{ application.museum_description | replace('\n', '<br>') | safe }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if application.admin_comment %}
+                <div class="alert alert-secondary">
+                    <h6 class="fw-semibold mb-1">
+                        <i class="bi bi-chat-text me-2"></i>Комментарий администратора:
+                    </h6>
+                    <p class="mb-0">{{ application.admin_comment }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if application.status == 'pending' %}
+        <div class="card border-0 shadow-sm border-top border-4 border-warning">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-check2-square text-warning me-2"></i>Принять решение
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-4">
+                        {{ form.admin_comment.label(class="form-label fw-semibold") }}
+                        {{ form.admin_comment(class="form-control" + (" is-invalid" if form.admin_comment.errors else ""),
+                           rows=3, placeholder="Необязательный комментарий для пользователя...") }}
+                        {% for error in form.admin_comment.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        {{ form.approve(class="btn btn-success btn-lg px-4",
+                           onclick="return confirm('Одобрить заявку и добавить музей в каталог?')") }}
+                        {{ form.reject(class="btn btn-danger btn-lg px-4",
+                           onclick="return confirm('Отклонить заявку?')") }}
+                        <a href="{{ url_for('admin.applications') }}" class="btn btn-outline-secondary btn-lg ms-auto">
+                            Назад
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <a href="{{ url_for('admin.applications') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Назад к заявкам
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-info-circle text-primary me-2"></i>Информация о заявке
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3">
+                        <small class="text-muted d-block fw-semibold text-uppercase">Заявитель</small>
+                        <div class="d-flex align-items-center mt-1">
+                            <i class="bi bi-person-circle text-primary me-2"></i>
+                            <div>
+                                <div class="fw-medium">{{ application.author.username }}</div>
+                                <small class="text-muted">{{ application.author.email }}</small>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="mb-3">
+                        <small class="text-muted d-block fw-semibold text-uppercase">Дата подачи</small>
+                        <span class="mt-1 d-block">
+                            <i class="bi bi-calendar3 text-muted me-1"></i>
+                            {{ application.created_at.strftime('%d.%m.%Y в %H:%M') }}
+                        </span>
+                    </li>
+                    {% if application.updated_at and application.updated_at != application.created_at %}
+                    <li class="mb-3">
+                        <small class="text-muted d-block fw-semibold text-uppercase">Обновлено</small>
+                        <span class="mt-1 d-block">
+                            <i class="bi bi-clock-history text-muted me-1"></i>
+                            {{ application.updated_at.strftime('%d.%m.%Y в %H:%M') }}
+                        </span>
+                    </li>
+                    {% endif %}
+                    <li>
+                        <small class="text-muted d-block fw-semibold text-uppercase">Статус</small>
+                        <span class="badge status-badge status-{{ application.status }} mt-1">
+                            {{ application.status_label }}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

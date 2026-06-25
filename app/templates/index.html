@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Hero Banner -->
+<section class="hero-banner mb-5">
+    <div class="hero-banner-inner">
+        <div class="hero-banner-left">
+            <span class="hero-tag">🇷🇺 Россия</span>
+            <h1 class="hero-title">Каталог<br>музеев России</h1>
+            <p class="hero-sub">Откройте для себя богатый мир культуры и истории.<br>Найдите музей рядом с вами или исследуйте коллекции со всей страны.</p>
+            <div class="hero-actions">
+                <a href="{{ url_for('main.museums') }}" class="btn-hero-primary">
+                    <i class="bi bi-search"></i> Найти музей
+                </a>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.submit_application') }}" class="btn-hero-ghost">
+                    <i class="bi bi-plus-circle"></i> Добавить музей
+                </a>
+                {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn-hero-ghost">
+                    <i class="bi bi-person-plus"></i> Зарегистрироваться
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="hero-banner-right">
+            <div class="hero-stat-card">
+                <i class="bi bi-building-fill hero-stat-icon" style="color:#6366f1"></i>
+                <div class="hero-stat-num">{{ total_museums }}</div>
+                <div class="hero-stat-label">Музеев в каталоге</div>
+            </div>
+            <div class="hero-stat-card">
+                <i class="bi bi-geo-alt-fill hero-stat-icon" style="color:#10b981"></i>
+                <div class="hero-stat-num">{{ cities }}</div>
+                <div class="hero-stat-label">Городов</div>
+            </div>
+            <div class="hero-stat-card hero-stat-wide">
+                <i class="bi bi-stars hero-stat-icon" style="color:#f59e0b"></i>
+                <div class="hero-stat-num">∞</div>
+                <div class="hero-stat-label">Впечатлений</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if recent_museums %}
+<section class="recent-museums mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0" style="font-size:1.4rem">Недавно добавленные</h2>
+        <a href="{{ url_for('main.museums') }}" class="btn btn-outline-primary btn-sm">
+            Все музеи <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    <div class="row g-4">
+        {% for museum in recent_museums %}
+        <div class="col-sm-6 col-lg-4">
+            <div class="card museum-card h-100 shadow-sm">
+                {% if museum.image_src %}
+                <img src="{{ museum.image_src }}" class="card-img-top museum-card-img"
+                     alt="{{ museum.name }}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <div class="museum-card-placeholder" style="display:none;">
+                    <i class="bi bi-building display-3 text-secondary"></i>
+                </div>
+                {% else %}
+                <div class="museum-card-placeholder">
+                    <i class="bi bi-building display-3 text-secondary"></i>
+                </div>
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge category-badge category-{{ museum.category }}">
+                            {{ museum.category_label }}
+                        </span>
+                        <small class="text-muted">
+                            <i class="bi bi-geo-alt me-1"></i>{{ museum.city }}
+                        </small>
+                    </div>
+                    <h5 class="card-title fw-semibold">{{ museum.name }}</h5>
+                    {% if museum.description %}
+                    <p class="card-text text-muted small flex-grow-1">
+                        {{ museum.description | truncate(120) }}
+                    </p>
+                    {% endif %}
+                    <a href="{{ url_for('main.museum_detail', museum_id=museum.id) }}"
+                       class="btn btn-primary btn-sm mt-auto">
+                        Подробнее <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if not current_user.is_authenticated %}
+<section class="cta-section text-center py-5 bg-light rounded-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <i class="bi bi-plus-circle-fill display-4 text-primary mb-3"></i>
+            <h3 class="fw-bold">Знаете интересный музей?</h3>
+            <p class="text-muted mb-4">
+                Зарегистрируйтесь и подайте заявку на добавление музея в наш каталог.
+                После проверки администратором музей появится в общем списке.
+            </p>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary px-4">
+                <i class="bi bi-person-plus me-2"></i>Создать аккаунт
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

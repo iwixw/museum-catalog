@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Панель администратора</a></li>
+        <li class="breadcrumb-item active">Музеи</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold mb-0">
+        <i class="bi bi-building text-primary me-2"></i>Управление музеями
+    </h1>
+    <a href="{{ url_for('admin.add_museum') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle me-1"></i>Добавить музей
+    </a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body py-2 px-3">
+        <form method="GET" class="d-flex gap-2 align-items-center">
+            <div class="input-group input-group-sm" style="max-width: 380px;">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" class="form-control"
+                       placeholder="Поиск по названию..." value="{{ search }}">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Найти</button>
+            {% if search %}
+            <a href="{{ url_for('admin.museums') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x-lg"></i> Сбросить
+            </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+{% if museums %}
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">#</th>
+                    <th>Название</th>
+                    <th>Город</th>
+                    <th>Категория</th>
+                    <th>Дата добавления</th>
+                    <th class="text-end pe-3">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for museum in museums %}
+                <tr>
+                    <td class="ps-3 text-muted small">{{ museum.id }}</td>
+                    <td>
+                        <a href="{{ url_for('main.museum_detail', museum_id=museum.id) }}"
+                           class="fw-semibold text-decoration-none text-dark" target="_blank">
+                            {{ museum.name }}
+                            <i class="bi bi-box-arrow-up-right ms-1 small text-muted"></i>
+                        </a>
+                    </td>
+                    <td>
+                        <i class="bi bi-geo-alt text-muted me-1"></i>{{ museum.city }}
+                    </td>
+                    <td>
+                        <span class="badge category-badge category-{{ museum.category }}">
+                            {{ museum.category_label }}
+                        </span>
+                    </td>
+                    <td class="text-muted small">{{ museum.created_at.strftime('%d.%m.%Y') }}</td>
+                    <td class="text-end pe-3">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <a href="{{ url_for('admin.edit_museum', museum_id=museum.id) }}"
+                               class="btn btn-outline-warning btn-sm" title="Редактировать">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('admin.delete_museum', museum_id=museum.id) }}"
+                                  onsubmit="return confirm('Удалить музей «{{ museum.name }}»?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if pagination.pages > 1 %}
+<nav aria-label="Пагинация" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin.museums', page=pagination.prev_num, search=search) }}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if page_num %}
+        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('admin.museums', page=page_num, search=search) }}">{{ page_num }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin.museums', page=pagination.next_num, search=search) }}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-building display-1 text-secondary opacity-25"></i>
+    <h4 class="text-muted mt-3">Музеев не найдено</h4>
+    {% if search %}
+    <p class="text-muted">По запросу «{{ search }}» ничего не найдено.</p>
+    <a href="{{ url_for('admin.museums') }}" class="btn btn-outline-secondary me-2">Сбросить</a>
+    {% endif %}
+    <a href="{{ url_for('admin.add_museum') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle me-1"></i>Добавить первый музей
+    </a>
+</div>
+{% endif %}
+{% endblock %}

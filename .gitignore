@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+# Локальная БД — не коммитим (создаётся через `python run.py`)
+*.db
+.env
+.venv/
+venv/
+instance/
+.DS_Store
+*.log
+
+# Локальная служебная папка
+.claude/
+.idea/

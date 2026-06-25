@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('main.museums') }}">Музеи</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ museum.name }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8">
+        {% set all_photos = museum.photos.all() %}
+        {% if all_photos %}
+
+        <div id="museumCarousel" class="carousel slide mb-3 rounded-3 overflow-hidden shadow-sm"
+             data-bs-interval="false">
+            <div class="carousel-inner">
+                {% for photo in all_photos %}
+                <div class="carousel-item{% if loop.first %} active{% endif %}">
+                    <img src="{{ photo.src }}" class="d-block w-100"
+                         style="height: 400px; object-fit: cover;" alt="{{ museum.name }}">
+                </div>
+                {% endfor %}
+            </div>
+            {% if all_photos|length > 1 %}
+            <button class="carousel-control-prev" type="button"
+                    data-bs-target="#museumCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button"
+                    data-bs-target="#museumCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
+            {% endif %}
+        </div>
+
+        {% if all_photos|length > 1 %}
+        <div class="row g-2 mb-4">
+            {% for photo in all_photos %}
+            <div class="col-3 col-md-2">
+                <button type="button"
+                        data-bs-target="#museumCarousel"
+                        data-bs-slide-to="{{ loop.index0 }}"
+                        class="p-0 border-0 bg-transparent gallery-thumb{% if loop.first %} thumb-active{% endif %}"
+                        style="width:100%;">
+                    <img src="{{ photo.src }}" class="img-thumbnail w-100"
+                         style="height: 65px; object-fit: cover;">
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% elif museum.image_src %}
+        <div class="museum-detail-img-wrapper mb-4">
+            <img src="{{ museum.image_src }}" class="img-fluid rounded-3 shadow-sm w-100"
+                 alt="{{ museum.name }}"
+                 onerror="this.parentElement.innerHTML='<div class=\'museum-detail-placeholder rounded-3\'><i class=\'bi bi-building display-1 text-secondary\'></i></div>'">
+        </div>
+        {% else %}
+        <div class="museum-detail-placeholder rounded-3 mb-4">
+            <i class="bi bi-building display-1 text-secondary"></i>
+        </div>
+        {% endif %}
+
+        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+            <span class="badge category-badge category-{{ museum.category }} fs-6 px-3 py-2">
+                {{ museum.category_label }}
+            </span>
+            <span class="text-muted">
+                <i class="bi bi-geo-alt me-1"></i>{{ museum.city }}
+            </span>
+            <span class="text-muted ms-auto small">
+                <i class="bi bi-calendar3 me-1"></i>
+                Добавлен: {{ museum.created_at.strftime('%d.%m.%Y') }}
+            </span>
+        </div>
+
+        <h1 class="fw-bold mb-4">{{ museum.name }}</h1>
+
+        {% if museum.description %}
+        <div class="mb-4">
+            <h5 class="fw-semibold text-muted text-uppercase small letter-spacing mb-3">Описание</h5>
+            <div class="museum-description">
+                {{ museum.description | replace('\n', '<br>') | safe }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-lg-top" style="top: 1rem;">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="bi bi-info-circle me-2"></i>Контактная информация
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    {% if museum.address %}
+                    <li class="mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-geo-alt-fill text-primary me-3 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <small class="text-muted d-block">Адрес</small>
+                                <span class="fw-medium">{{ museum.address }}</span>
+                            </div>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    <li class="mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-building-fill text-primary me-3 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <small class="text-muted d-block">Город</small>
+                                <span class="fw-medium">{{ museum.city }}</span>
+                            </div>
+                        </div>
+                    </li>
+
+                    {% if museum.phone %}
+                    <li class="mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-telephone-fill text-primary me-3 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <small class="text-muted d-block">Телефон</small>
+                                <a href="tel:{{ museum.phone }}" class="fw-medium text-decoration-none">
+                                    {{ museum.phone }}
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    {% if museum.website %}
+                    <li class="mb-0">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-globe text-primary me-3 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <small class="text-muted d-block">Сайт</small>
+                                <a href="{{ museum.website if museum.website.startswith('http') else 'https://' + museum.website }}"
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="fw-medium text-decoration-none text-break">
+                                    {{ museum.website }}
+                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                {% if not museum.address and not museum.phone and not museum.website %}
+                <p class="text-muted small fst-italic mb-0">Контактная информация не указана.</p>
+                {% endif %}
+            </div>
+            {% if current_user.is_admin %}
+            <div class="card-footer bg-transparent">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin.edit_museum', museum_id=museum.id) }}"
+                       class="btn btn-outline-warning btn-sm flex-grow-1">
+                        <i class="bi bi-pencil me-1"></i>Редактировать
+                    </a>
+                    <form method="POST" action="{{ url_for('admin.delete_museum', museum_id=museum.id) }}"
+                          onsubmit="return confirm('Вы уверены, что хотите удалить этот музей?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('main.museums') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Назад к списку
+    </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const carouselEl = document.getElementById('museumCarousel');
+    if (carouselEl) {
+        const thumbs = document.querySelectorAll('.gallery-thumb');
+
+        carouselEl.addEventListener('slid.bs.carousel', function(e) {
+            thumbs.forEach(t => t.classList.remove('thumb-active'));
+            if (thumbs[e.to]) thumbs[e.to].classList.add('thumb-active');
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+[Unit]
+Description=Museum Catalog Flask App
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/museums
+Environment="PATH=/var/www/museums/venv/bin"
+Environment="PYTHONIOENCODING=utf-8"
+ExecStart=/var/www/museums/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8000 wsgi:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

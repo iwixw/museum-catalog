@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold mb-0">
+        <i class="bi bi-shield-lock text-primary me-2"></i>Панель администратора
+    </h1>
+    <span class="badge bg-primary fs-6 px-3 py-2">
+        <i class="bi bi-person-badge me-1"></i>Администратор
+    </span>
+</div>
+
+<div class="row g-3 mb-5">
+    <div class="col-sm-6 col-xl-3">
+        <a href="{{ url_for('admin.museums') }}" class="admin-stat-card" style="--clr:#6366f1;--clr-bg:#eef2ff">
+            <div class="admin-stat-icon-wrap" style="background:#eef2ff">
+                <i class="bi bi-building" style="color:#6366f1"></i>
+            </div>
+            <div class="admin-stat-body">
+                <div class="admin-stat-num">{{ total_museums }}</div>
+                <div class="admin-stat-label">Музеев в каталоге</div>
+            </div>
+            <div class="admin-stat-arrow"><i class="bi bi-arrow-right"></i></div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="admin-stat-card" style="--clr:#10b981;--clr-bg:#ecfdf5">
+            <div class="admin-stat-icon-wrap" style="background:#ecfdf5">
+                <i class="bi bi-people" style="color:#10b981"></i>
+            </div>
+            <div class="admin-stat-body">
+                <div class="admin-stat-num">{{ total_users }}</div>
+                <div class="admin-stat-label">Пользователей</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a href="{{ url_for('admin.applications', status='pending') }}" class="admin-stat-card" style="--clr:#f59e0b;--clr-bg:#fffbeb">
+            <div class="admin-stat-icon-wrap" style="background:#fffbeb">
+                <i class="bi bi-hourglass-split" style="color:#f59e0b"></i>
+            </div>
+            <div class="admin-stat-body">
+                <div class="admin-stat-num">{{ pending_applications }}</div>
+                <div class="admin-stat-label">На рассмотрении</div>
+            </div>
+            <div class="admin-stat-arrow"><i class="bi bi-arrow-right"></i></div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a href="{{ url_for('admin.applications') }}" class="admin-stat-card" style="--clr:#0891b2;--clr-bg:#ecfeff">
+            <div class="admin-stat-icon-wrap" style="background:#ecfeff">
+                <i class="bi bi-file-text" style="color:#0891b2"></i>
+            </div>
+            <div class="admin-stat-body">
+                <div class="admin-stat-num">{{ total_applications }}</div>
+                <div class="admin-stat-label">Всего заявок</div>
+            </div>
+            <div class="admin-stat-arrow"><i class="bi bi-arrow-right"></i></div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Последние заявки
+                </h5>
+                <a href="{{ url_for('admin.applications') }}" class="btn btn-outline-primary btn-sm">
+                    Все заявки
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_applications %}
+                <div class="list-group list-group-flush">
+                    {% for app in recent_applications %}
+                    <a href="{{ url_for('admin.application_detail', application_id=app.id) }}"
+                       class="list-group-item list-group-item-action px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1 fw-semibold">{{ app.museum_name }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-person me-1"></i>{{ app.author.username }}
+                                    &nbsp;•&nbsp;
+                                    <i class="bi bi-geo-alt me-1"></i>{{ app.museum_city }}
+                                    &nbsp;•&nbsp;
+                                    <i class="bi bi-calendar3 me-1"></i>{{ app.created_at.strftime('%d.%m.%Y') }}
+                                </small>
+                            </div>
+                            <span class="badge status-badge status-{{ app.status }} ms-2">
+                                {{ app.status_label }}
+                            </span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox display-4 opacity-25"></i>
+                    <p class="mt-2 mb-0">Заявок пока нет</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-bar-chart text-primary me-2"></i>Статистика заявок
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small text-muted">На рассмотрении</span>
+                        <span class="small fw-semibold">{{ pending_applications }}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning"
+                             style="width: {{ (pending_applications / total_applications * 100) if total_applications else 0 }}%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small text-muted">Одобрено</span>
+                        <span class="small fw-semibold">{{ approved_applications }}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success"
+                             style="width: {{ (approved_applications / total_applications * 100) if total_applications else 0 }}%"></div>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small text-muted">Отклонено</span>
+                        <span class="small fw-semibold">{{ rejected_applications }}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-danger"
+                             style="width: {{ (rejected_applications / total_applications * 100) if total_applications else 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-lightning text-primary me-2"></i>Быстрые действия
+                </h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('admin.add_museum') }}" class="list-group-item list-group-item-action py-3">
+                    <i class="bi bi-plus-circle text-success me-2"></i>Добавить музей
+                </a>
+                <a href="{{ url_for('admin.museums') }}" class="list-group-item list-group-item-action py-3">
+                    <i class="bi bi-building text-primary me-2"></i>Управление музеями
+                </a>
+                <a href="{{ url_for('admin.applications', status='pending') }}"
+                   class="list-group-item list-group-item-action py-3">
+                    <i class="bi bi-hourglass-split text-warning me-2"></i>Заявки на рассмотрении
+                    {% if pending_applications %}
+                    <span class="badge bg-warning text-dark float-end">{{ pending_applications }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin.applications') }}" class="list-group-item list-group-item-action py-3">
+                    <i class="bi bi-file-text text-info me-2"></i>Все заявки
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
